@@ -1198,6 +1198,9 @@ namespace dfe{
                 return {false,end,nullptr};
             }
         }
+        #ifdef FAILED
+        #   undef FAILED
+        #endif
         #define FAILED return {false,end,false};
         std::tuple<bool,JsonDecoder::StrIter,Json::Bool>
         JsonDecoder::tryParseToBool(const StrIter &start,const StrIter &end) noexcept{
