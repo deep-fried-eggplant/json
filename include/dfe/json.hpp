@@ -16,7 +16,7 @@
 #include<type_traits>
 
 #ifdef __GNUC__
-#define INLINE inline __attribute((always_inline))
+#define INLINE inline __attribute__((always_inline))
 #define NOINLINE inline __attribute__((noinline))
 #else
 #define INLINE inline
@@ -1572,8 +1572,11 @@ namespace dfe{
         NOINLINE JsonIterator::JsonIterator(const JsonIterator& iterator)
         :   _json(iterator._json),_valueType(iterator._valueType)
         {
-            this->_arrayIter  = iterator._arrayIter ;
-            this->_objectIter = iterator._objectIter;
+            if(_valueType==Json::ValueType::Array){
+                this->_arrayIter=iterator._arrayIter;
+            }else if(_valueType==Json::ValueType::Object){
+                this->_objectIter=iterator._objectIter;
+            }
         }
         NOINLINE size_t JsonIterator::index() const{
             if(_valueType==Json::ValueType::Array){
@@ -1653,8 +1656,11 @@ namespace dfe{
         NOINLINE JsonConstIterator::JsonConstIterator(const JsonConstIterator& iterator)
         :_json(iterator._json),_valueType(iterator._valueType)
         {
-            this->_arrayIter  = iterator._arrayIter;
-            this->_objectIter = iterator._objectIter;
+            if(_valueType==Json::ValueType::Array){
+                this->_arrayIter=iterator._arrayIter;
+            }else if(_valueType==Json::ValueType::Object){
+                this->_objectIter=iterator._objectIter;
+            }
         }
         NOINLINE size_t JsonConstIterator::index() const{
             if(_valueType==Json::ValueType::Array){
