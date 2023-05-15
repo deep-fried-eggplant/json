@@ -1052,11 +1052,11 @@ namespace dfe{
         }
     }
 
-    NOINLINE std::ostream& operator<<(std::ostream &os,const dfe::Json &value) noexcept{
+    INLINE std::ostream& operator<<(std::ostream &os,const dfe::Json &value) noexcept{
         os << dfe::Json::toString(value);
         return os;
     }
-    NOINLINE std::ostream& operator<<(std::ostream &os,const dfe::Json::ValueType &valueType) noexcept{
+    INLINE std::ostream& operator<<(std::ostream &os,const dfe::Json::ValueType &valueType) noexcept{
         static constexpr const char* names[]={"Null","Bool","Number","String","Array","Object"};
         os << names[static_cast<std::underlying_type<Json::ValueType>::type>(valueType)];
         // switch(valueType){
