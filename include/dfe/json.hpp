@@ -207,7 +207,7 @@ namespace dfe{
 
         private:
         union{
-            Null    _null;
+            // Null    _null;
             Bool    _bool;
             Number  _number;
             String *_string;
@@ -218,13 +218,13 @@ namespace dfe{
 
         public:
         
-        /**
-         * @fn getNull
-         * @brief get the Null-type value of the Json instance
-         * @throw exeption::JsonException if the type of the value is not Null
-         * @return nullptr
-        */
-        Null    getNull()   const;
+        // /**
+        //  * @fn getNull
+        //  * @brief get the Null-type value of the Json instance
+        //  * @throw exeption::JsonException if the type of the value is not Null
+        //  * @return nullptr
+        // */
+        // Null    getNull()   const;
 
         /**
          * @fn getBool
@@ -579,7 +579,7 @@ namespace dfe{
 
 
     INLINE Json::Json() noexcept:_valueType(ValueType::Null){}
-    INLINE Json::Json(const Null     value) noexcept:_null(nullptr),_valueType(ValueType::Null  ){}
+    INLINE Json::Json(const Null     value) noexcept:_valueType(ValueType::Null  ){}
     INLINE Json::Json(const char*    value) noexcept:_string(new String(value)),_valueType(ValueType::String){}
     INLINE Json::Json(const String  &value) noexcept:_string(new String(value)),_valueType(ValueType::String){}
     INLINE Json::Json(const Array   &value) noexcept:_array (new Array (value)),_valueType(ValueType::Array ){}
@@ -600,7 +600,7 @@ namespace dfe{
     NOINLINE Json::Json(const Json &value) noexcept{
         _valueType=value._valueType;
         switch(value._valueType){
-            case ValueType::Null    : _null   =nullptr;       break;
+            case ValueType::Null    : break;
             case ValueType::Bool    : _bool   =value._bool  ; break;
             case ValueType::Number  : _number =value._number; break;
             case ValueType::String  : _string=new String(*(value._string)); break;
@@ -611,7 +611,7 @@ namespace dfe{
     NOINLINE Json::Json(Json &&value) noexcept{
         _valueType=value._valueType;
         switch(value._valueType){
-            case ValueType::Null    : _null=nullptr;break;
+            case ValueType::Null    : break;
             case ValueType::Bool    : _bool  =std::move(value._bool  );break;
             case ValueType::Number  : _number=std::move(value._number);break;
             case ValueType::String  : _string=value._string;value._string=nullptr;break;
@@ -629,7 +629,7 @@ namespace dfe{
     INLINE Json::Json(const ValueType type) noexcept{
         _valueType=type;
         switch(type){
-            case ValueType::Null   : _null  =Null  ();break;
+            case ValueType::Null   : break;
             case ValueType::Bool   : _bool  =Bool  ();break;
             case ValueType::Number : _number=Number();break;
             case ValueType::String : _string=new String();break;
@@ -643,10 +643,6 @@ namespace dfe{
         clear();
     }
 
-    NOINLINE Json::Null Json::getNull() const{
-        if(isNull()) return _null;
-        else throw Exception::typeError(("type must be Null, but "+toString(_valueType)).c_str());
-    }
     NOINLINE Json::Bool Json::getBool() const{
         if(isBool()) return _bool;
         else throw Exception::typeError(("type must be Bool, but "+toString(_valueType)).c_str());
@@ -701,7 +697,7 @@ namespace dfe{
         clear();
         _valueType=type;
         switch(type){
-            case ValueType::Null   : _null  =Null  ();break;
+            case ValueType::Null   : break;
             case ValueType::Bool   : _bool  =Bool  ();break;
             case ValueType::Number : _number=Number();break;
             case ValueType::String : _string=new String();break;
@@ -799,7 +795,7 @@ namespace dfe{
     NOINLINE Json& Json::operator= (const Json &value){
         if(this->_valueType==value._valueType){
             switch(value._valueType){
-                case ValueType::Null    : _null  =nullptr;          break;
+                case ValueType::Null    : break;
                 case ValueType::Bool    : _bool  =value._bool  ;    break;
                 case ValueType::Number  : _number=value._number;    break;
                 case ValueType::String  :*_string=*(value._string); break;
@@ -809,7 +805,7 @@ namespace dfe{
         }else{
             this->reset(value._valueType);
             switch(value._valueType){
-                case ValueType::Null    : _null  =nullptr;       break;
+                case ValueType::Null    : break;
                 case ValueType::Bool    : _bool  =value._bool  ; break;
                 case ValueType::Number  : _number=value._number; break;
                 case ValueType::String  : _string=new String(*(value._string)); break;
@@ -824,7 +820,7 @@ namespace dfe{
             this->reset(value._valueType);
         }
         switch(value._valueType){
-            case ValueType::Null    : _null=nullptr        ;    break;
+            case ValueType::Null    : break;
             case ValueType::Bool    : _bool  =value._bool  ;    break;
             case ValueType::Number  : _number=value._number;    break;
             case ValueType::String  : _string=value._string;value._string=nullptr;  break;
@@ -1059,14 +1055,6 @@ namespace dfe{
     INLINE std::ostream& operator<<(std::ostream &os,const dfe::Json::ValueType &valueType) noexcept{
         static constexpr const char* names[]={"Null","Bool","Number","String","Array","Object"};
         os << names[static_cast<std::underlying_type<Json::ValueType>::type>(valueType)];
-        // switch(valueType){
-        //     case Json::ValueType::Null:   os << "Json::Null"  ; break;
-        //     case Json::ValueType::Bool:   os << "Json::Bool"  ; break;
-        //     case Json::ValueType::Number: os << "Json::Number"; break;
-        //     case Json::ValueType::String: os << "Json::String"; break;
-        //     case Json::ValueType::Array:  os << "Json::Array" ; break;
-        //     case Json::ValueType::Object: os << "Json::Object"; break;
-        // }
         return os;
     }
     
