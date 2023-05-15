@@ -1052,19 +1052,21 @@ namespace dfe{
         }
     }
 
-    INLINE std::ostream& operator<<(std::ostream &os,const dfe::Json &value) noexcept{
+    NOINLINE std::ostream& operator<<(std::ostream &os,const dfe::Json &value) noexcept{
         os << dfe::Json::toString(value);
         return os;
     }
     NOINLINE std::ostream& operator<<(std::ostream &os,const dfe::Json::ValueType &valueType) noexcept{
-        switch(valueType){
-            case Json::ValueType::Null:   os << "Json::Null"  ; break;
-            case Json::ValueType::Number: os << "Json::Number"; break;
-            case Json::ValueType::String: os << "Json::String"; break;
-            case Json::ValueType::Bool:   os << "Json::Bool"  ; break;
-            case Json::ValueType::Array:  os << "Json::Array" ; break;
-            case Json::ValueType::Object: os << "Json::Object"; break;
-        }
+        static constexpr const char* names[]={"Null","Bool","Number","String","Array","Object"};
+        os << names[static_cast<std::underlying_type<Json::ValueType>::type>(valueType)];
+        // switch(valueType){
+        //     case Json::ValueType::Null:   os << "Json::Null"  ; break;
+        //     case Json::ValueType::Bool:   os << "Json::Bool"  ; break;
+        //     case Json::ValueType::Number: os << "Json::Number"; break;
+        //     case Json::ValueType::String: os << "Json::String"; break;
+        //     case Json::ValueType::Array:  os << "Json::Array" ; break;
+        //     case Json::ValueType::Object: os << "Json::Object"; break;
+        // }
         return os;
     }
     
