@@ -65,7 +65,15 @@ namespace dfe{
             template<typename T>
             using enable_if_float=typename std::enable_if<std::is_floating_point<T>::value,std::nullptr_t>;
             template<typename T>
-            using enable_if_int=typename std::enable_if<std::is_integral<T>::value,std::nullptr_t>;
+            using enable_if_int=typename std::enable_if<std::is_integral<T>::value&&!std::is_same<T,bool>::value,std::nullptr_t>;
+
+            template<typename T>
+            struct is_number{
+                static constexpr bool value=
+                    std::is_floating_point<T>::value||
+                    (std::is_integral<T>::value&&!std::is_same<T,bool>::value);
+            };
+
             private:
             union{
                 Int _int;
@@ -140,14 +148,10 @@ namespace dfe{
         */
         Json() noexcept;
 
-        /**
-         * @brief constructor for Number-type
-         * @param value Integer or floating point, which defined as Number, or bool, as Bool
-        */
-        template<typename NumberT,typename std::enable_if<
-            std::is_integral<NumberT>::value||std::is_floating_point<NumberT>::value,std::nullptr_t
-        >::type=nullptr>
-        Json(const NumberT &value) noexcept;
+        template<typename NumberT>
+        Json(const NumberT value) noexcept;
+
+        Json(const Bool    value) noexcept;
 
         /**
          * @brief constructor for Null-type
@@ -366,14 +370,6 @@ namespace dfe{
         */
         static std::string toString(const Json &value,const bool indent=false) noexcept;
 
-        /**
-         * @fn toString
-         * @brief dump the type of the value to string
-         * @param type the value of enum class ValueType
-         * @return the string reresenting ValueType
-        */
-        static std::string toString(const ValueType type) noexcept;
-
         Json& operator= (const Json &value);
         Json& operator= (      Json&&value);
 
@@ -580,23 +576,17 @@ namespace dfe{
 
     INLINE Json::Json() noexcept:_valueType(ValueType::Null){}
     INLINE Json::Json(const Null     value) noexcept:_valueType(ValueType::Null  ){}
+    INLINE Json::Json(const Bool     value) noexcept:_bool(value),_valueType(ValueType::Bool){}
     INLINE Json::Json(const char*    value) noexcept:_string(new String(value)),_valueType(ValueType::String){}
     INLINE Json::Json(const String  &value) noexcept:_string(new String(value)),_valueType(ValueType::String){}
     INLINE Json::Json(const Array   &value) noexcept:_array (new Array (value)),_valueType(ValueType::Array ){}
     INLINE Json::Json(const Object  &value) noexcept:_object(new Object(value)),_valueType(ValueType::Object){}
 
-    template<typename NumberT,typename std::enable_if<
-        std::is_integral<NumberT>::value||std::is_floating_point<NumberT>::value,std::nullptr_t
-    >::type>
-    INLINE Json::Json(const NumberT &value) noexcept{
-        if(std::is_same<NumberT,bool>::value){
-            _bool=value;
-            _valueType=ValueType::Bool;
-        }else{
-            _number=value;
-            _valueType=ValueType::Number;
-        }
+    template<typename NumberT>
+    INLINE Json::Json(const NumberT  value) noexcept:_number(value),_valueType(ValueType::Number){
+        static_assert(Json::Number::is_number<NumberT>::value,"");
     }
+
     NOINLINE Json::Json(const Json &value) noexcept{
         _valueType=value._valueType;
         switch(value._valueType){
@@ -781,19 +771,8 @@ namespace dfe{
         return oss.str();
     }
     #undef INDENT
-    NOINLINE std::string Json::toString(const ValueType type) noexcept{
-        switch(type){
-            case ValueType::Null   : return "Null"  ; break;
-            case ValueType::Bool   : return "Bool"  ; break;
-            case ValueType::Number : return "Number"; break;
-            case ValueType::String : return "String"; break;
-            case ValueType::Array  : return "Array" ; break;
-            case ValueType::Object : return "Object"; break;
-        }
-        return "";
-    }
     NOINLINE Json& Json::operator= (const Json &value){
-        if(this->_valueType==value._valueType){
+        if(_valueType==value._valueType){
             switch(value._valueType){
                 case ValueType::Null    : break;
                 case ValueType::Bool    : _bool  =value._bool  ;    break;
@@ -816,7 +795,7 @@ namespace dfe{
         return *this;
     }
     NOINLINE Json& Json::operator= (Json &&value){
-        if(this->_valueType!=value._valueType){
+        if(_valueType!=value._valueType){
             this->reset(value._valueType);
         }
         switch(value._valueType){
@@ -845,87 +824,87 @@ namespace dfe{
         return false;
     }
     INLINE bool Json::operator!=(const Json& other) const{
-        return !(operator==(other));
+        return !(this->operator==(other));
     }
 
     NOINLINE Json::Iterator Json::begin(){
-        if(isArray()){
+        if(this->isArray()){
             return Iterator(_array->begin(),*this);
-        }else if(isObject()){
+        }else if(this->isObject()){
             return Iterator(_object->begin(),*this);
         }else{
             throw Exception::typeError("function begin() is only for Array/Object-type value");
         }
     }
     NOINLINE Json::ConstIterator Json::begin() const{
-        if(isArray()){
+        if(this->isArray()){
             return ConstIterator(_array->cbegin(),*this);
-        }else if(isObject()){
+        }else if(this->isObject()){
             return ConstIterator(_object->cbegin(),*this);
         }else{
             throw Exception::typeError("function begin() is only for Array/Object-type value");
         }
     }
     NOINLINE Json::ConstIterator Json::cbegin() const{
-        if(isArray()){
+        if(this->isArray()){
             return ConstIterator(_array->cbegin(),*this);
-        }else if(isObject()){
+        }else if(this->isObject()){
             return ConstIterator(_object->cbegin(),*this);
         }else{
             throw Exception::typeError("function cbegin() is only for Array/Object-type value");
         }
     }
     NOINLINE Json::Iterator Json::end(){
-        if(isArray()){
+        if(this->isArray()){
             return Iterator(_array->end(),*this);
-        }else if(isObject()){
+        }else if(this->isObject()){
             return Iterator(_object->end(),*this);
         }else{
             throw Exception::typeError("function end() is only for Array/Object-type value");
         }
     }
     NOINLINE Json::ConstIterator Json::end() const{
-        if(isArray()){
+        if(this->isArray()){
             return ConstIterator(_array->cend(),*this);
-        }else if(isObject()){
+        }else if(this->isObject()){
             return ConstIterator(_object->cend(),*this);
         }else{
             throw Exception::typeError("function end() is only for Array/Object-type value");
         }
     }
     NOINLINE Json::ConstIterator Json::cend() const{
-        if(isArray()){
+        if(this->isArray()){
             return ConstIterator(_array->cend(),*this);
-        }else if(isObject()){
+        }else if(this->isObject()){
             return ConstIterator(_object->cend(),*this);
         }else{
             throw Exception::typeError("function cend() is only for Array/Object-type value");
         }
     }
     NOINLINE size_t Json::size() const{
-        if(isArray()){
+        if(this->isArray()){
             return _array->size();
-        }else if(isObject()){
+        }else if(this->isObject()){
             return _object->size();
         }else throw Exception::typeError("function size() is only for Array/Object-type value");
     }
     NOINLINE Json::Iterator Json::find(const Json& value){
-        if(isArray()){
+        if(this->isArray()){
             return Iterator(std::find(_array->begin(),_array->end(),value),*this);
         }else throw Exception::typeError("function find(value) is only for Array-type value");
     }
     NOINLINE Json::ConstIterator Json::find(const Json& value) const{
-        if(isArray()){
+        if(this->isArray()){
             return ConstIterator(std::find(_array->cbegin(),_array->cend(),value),*this);
         }else throw Exception::typeError("function find(value) is only for Array-type value");
     }
     NOINLINE Json::Iterator Json::find(const std::string &key){
-        if(isObject()){
+        if(this->isObject()){
             return Iterator(_object->find(key),*this);
         }else throw Exception::typeError("function find(key) is only for Object-type value");
     }
     NOINLINE Json::ConstIterator Json::find(const std::string &key) const{
-        if(isObject()){
+        if(this->isObject()){
             return ConstIterator(_object->find(key),*this);
         }else throw Exception::typeError("function find(key) is only for Object-type value");
     }
@@ -934,14 +913,14 @@ namespace dfe{
         if(this->isNull()){
             this->reset(ValueType::Array);
         }
-        if(isArray()){
+        if(this->isArray()){
             _array->push_back(value);
         }else{
             throw Exception::typeError("function append(value) is only for Array-type value");
         }
     }
     NOINLINE void Json::insert(const Json::Array::size_type index, const Json& value){
-        if(isArray()){
+        if(this->isArray()){
             _array->insert(_array->begin()+index,value);
         }else{
             throw Exception::typeError("function insert(index,value) is only for Array-type value");
@@ -987,14 +966,14 @@ namespace dfe{
         if(this->isNull()){
             this->reset(ValueType::Object);
         }
-        if(!isObject()){
+        if(!this->isObject()){
             throw Exception::typeError("function append(key,value) is only for Object-type value");
         }else{
             _object->operator[]("key")=value;
         }
     }
     NOINLINE void Json::insert(const std::string &key,const Json &value){
-        if(!isObject()){
+        if(!this->isObject()){
             throw Exception::typeError("function insert(key,value) is only for Object-type value");
         }else{
             _object->operator[]("key")=value;
@@ -1761,5 +1740,8 @@ namespace dfe{
         }
     }
 }
+
+#undef INLINE
+#undef NOINLINE
 
 #endif
