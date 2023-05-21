@@ -969,14 +969,14 @@ namespace dfe{
         if(!this->isObject()){
             throw Exception::typeError("function append(key,value) is only for Object-type value");
         }else{
-            _object->operator[]("key")=value;
+            _object->operator[](key)=value;
         }
     }
     NOINLINE void Json::insert(const std::string &key,const Json &value){
         if(!this->isObject()){
             throw Exception::typeError("function insert(key,value) is only for Object-type value");
         }else{
-            _object->operator[]("key")=value;
+            _object->operator[](key)=value;
         }
     }
     NOINLINE bool Json::contains(const std::string &key) const{
