@@ -15,13 +15,7 @@
 #include<cstdlib>
 #include<type_traits>
 
-#ifdef __GNUC__
-#define INLINE inline __attribute__((always_inline))
-#define NOINLINE inline __attribute__((noinline))
-#else
-#define INLINE inline
-#define NOINLINE inline
-#endif
+#define DFE_JSON_INLINE inline
 
 namespace detail{
 
@@ -221,14 +215,6 @@ namespace dfe{
         ValueType _valueType;
 
         public:
-        
-        // /**
-        //  * @fn getNull
-        //  * @brief get the Null-type value of the Json instance
-        //  * @throw exeption::JsonException if the type of the value is not Null
-        //  * @return nullptr
-        // */
-        // Null    getNull()   const;
 
         /**
          * @fn getBool
@@ -574,20 +560,20 @@ namespace dfe{
     }
 
 
-    INLINE Json::Json() noexcept:_valueType(ValueType::Null){}
-    INLINE Json::Json(const Null     value) noexcept:_valueType(ValueType::Null  ){}
-    INLINE Json::Json(const Bool     value) noexcept:_bool(value),_valueType(ValueType::Bool){}
-    INLINE Json::Json(const char*    value) noexcept:_string(new String(value)),_valueType(ValueType::String){}
-    INLINE Json::Json(const String  &value) noexcept:_string(new String(value)),_valueType(ValueType::String){}
-    INLINE Json::Json(const Array   &value) noexcept:_array (new Array (value)),_valueType(ValueType::Array ){}
-    INLINE Json::Json(const Object  &value) noexcept:_object(new Object(value)),_valueType(ValueType::Object){}
+    DFE_JSON_INLINE Json::Json() noexcept:_valueType(ValueType::Null){}
+    DFE_JSON_INLINE Json::Json(const Null     value) noexcept:_valueType(ValueType::Null  ){}
+    DFE_JSON_INLINE Json::Json(const Bool     value) noexcept:_bool(value),_valueType(ValueType::Bool){}
+    DFE_JSON_INLINE Json::Json(const char*    value) noexcept:_string(new String(value)),_valueType(ValueType::String){}
+    DFE_JSON_INLINE Json::Json(const String  &value) noexcept:_string(new String(value)),_valueType(ValueType::String){}
+    DFE_JSON_INLINE Json::Json(const Array   &value) noexcept:_array (new Array (value)),_valueType(ValueType::Array ){}
+    DFE_JSON_INLINE Json::Json(const Object  &value) noexcept:_object(new Object(value)),_valueType(ValueType::Object){}
 
     template<typename NumberT>
-    INLINE Json::Json(const NumberT  value) noexcept:_number(value),_valueType(ValueType::Number){
+    DFE_JSON_INLINE Json::Json(const NumberT  value) noexcept:_number(value),_valueType(ValueType::Number){
         static_assert(Json::Number::is_number<NumberT>::value,"");
     }
 
-    NOINLINE Json::Json(const Json &value) noexcept{
+    DFE_JSON_INLINE Json::Json(const Json &value) noexcept{
         _valueType=value._valueType;
         switch(value._valueType){
             case ValueType::Null    : break;
@@ -598,7 +584,7 @@ namespace dfe{
             case ValueType::Object  : _object=new Object(*(value._object)); break;
         }
     }
-    NOINLINE Json::Json(Json &&value) noexcept{
+    DFE_JSON_INLINE Json::Json(Json &&value) noexcept{
         _valueType=value._valueType;
         switch(value._valueType){
             case ValueType::Null    : break;
@@ -609,14 +595,14 @@ namespace dfe{
             case ValueType::Object  : _object=value._object;value._object=nullptr;break;
         }
     }
-    NOINLINE Json::Json(const std::initializer_list<Json> &list) noexcept{
+    DFE_JSON_INLINE Json::Json(const std::initializer_list<Json> &list) noexcept{
         _valueType=ValueType::Array;
         _array=new Array();
         for(std::initializer_list<Json>::iterator it=list.begin();it!=list.end();++it){
             _array->push_back(*it);
         }
     }
-    INLINE Json::Json(const ValueType type) noexcept{
+    DFE_JSON_INLINE Json::Json(const ValueType type) noexcept{
         _valueType=type;
         switch(type){
             case ValueType::Null   : break;
@@ -629,49 +615,49 @@ namespace dfe{
         }
     }
 
-    INLINE Json::~Json() noexcept{
+    DFE_JSON_INLINE Json::~Json() noexcept{
         clear();
     }
 
-    NOINLINE Json::Bool Json::getBool() const{
+    DFE_JSON_INLINE Json::Bool Json::getBool() const{
         if(isBool()) return _bool;
         else throw Exception::typeError(("type must be Bool, but "+toString(_valueType)).c_str());
     }
-    NOINLINE Json::Number Json::getNumber() const{
+    DFE_JSON_INLINE Json::Number Json::getNumber() const{
         if(isNumber()) return _number;
         else throw Exception::typeError(("type must be Number, but "+toString(_valueType)).c_str());
     }
     template<typename NumberT>
-    NOINLINE NumberT Json::getNumber() const{
+    DFE_JSON_INLINE NumberT Json::getNumber() const{
         static_assert(std::is_floating_point<NumberT>::value || std::is_integral<NumberT>::value,"NumberT must be numeric, but is not.");
         if(isNumber()) return _number.get<NumberT>();
         else throw Exception::typeError(("type must be Number, but "+toString(_valueType)).c_str());
     }
-    NOINLINE Json::String Json::getString() const{
+    DFE_JSON_INLINE Json::String Json::getString() const{
         if(isString()) return *_string;
         else throw Exception::typeError(("type must be String, but "+toString(_valueType)).c_str());
     }
-    NOINLINE Json::Array Json::getArray() const{
+    DFE_JSON_INLINE Json::Array Json::getArray() const{
         if(isArray()) return *_array;
         else throw Exception::typeError(("type must be Array, but "+toString(_valueType)).c_str());
     }
-    NOINLINE Json::Object Json::getObject() const{
+    DFE_JSON_INLINE Json::Object Json::getObject() const{
         if(isObject()) return *_object;
         else throw Exception::typeError(("type must be Object, but "+toString(_valueType)).c_str());
     }
 
-    INLINE Json::ValueType Json::valueType() const noexcept{
+    DFE_JSON_INLINE Json::ValueType Json::valueType() const noexcept{
         return _valueType;
     }
 
-    INLINE bool Json::isNull()   const noexcept{ return _valueType==ValueType::Null  ;}
-    INLINE bool Json::isBool()   const noexcept{ return _valueType==ValueType::Bool  ;}
-    INLINE bool Json::isNumber() const noexcept{ return _valueType==ValueType::Number;}
-    INLINE bool Json::isString() const noexcept{ return _valueType==ValueType::String;}
-    INLINE bool Json::isArray()  const noexcept{ return _valueType==ValueType::Array ;}
-    INLINE bool Json::isObject() const noexcept{ return _valueType==ValueType::Object;}
+    DFE_JSON_INLINE bool Json::isNull()   const noexcept{ return _valueType==ValueType::Null  ;}
+    DFE_JSON_INLINE bool Json::isBool()   const noexcept{ return _valueType==ValueType::Bool  ;}
+    DFE_JSON_INLINE bool Json::isNumber() const noexcept{ return _valueType==ValueType::Number;}
+    DFE_JSON_INLINE bool Json::isString() const noexcept{ return _valueType==ValueType::String;}
+    DFE_JSON_INLINE bool Json::isArray()  const noexcept{ return _valueType==ValueType::Array ;}
+    DFE_JSON_INLINE bool Json::isObject() const noexcept{ return _valueType==ValueType::Object;}
 
-    NOINLINE void Json::clear() noexcept{
+    DFE_JSON_INLINE void Json::clear() noexcept{
         switch(_valueType){
             case ValueType::Null   : break;
             case ValueType::Bool   : break;
@@ -683,7 +669,7 @@ namespace dfe{
         }
         _valueType=ValueType::Null;
     }
-    NOINLINE void Json::reset(const Json::ValueType type) noexcept{
+    DFE_JSON_INLINE void Json::reset(const Json::ValueType type) noexcept{
         clear();
         _valueType=type;
         switch(type){
@@ -697,7 +683,7 @@ namespace dfe{
         }
     }
 
-    NOINLINE Json Json::load(const std::string& path){
+    DFE_JSON_INLINE Json Json::load(const std::string& path){
         Json res;
         std::string jsonStr;
         std::ifstream ifs(path,std::ios::in);
@@ -709,7 +695,7 @@ namespace dfe{
         ifs.close();
         return res;
     }
-    NOINLINE void Json::save(const Json &json,const std::string& path,const bool indent){
+    DFE_JSON_INLINE void Json::save(const Json &json,const std::string& path,const bool indent){
         std::ofstream ofs(path);
         if(!ofs.is_open()){
             throw Exception::otherError(("failed to open the file : "+path).c_str());
@@ -718,14 +704,14 @@ namespace dfe{
         ofs << toString(json,indent);
         ofs.close();
     }
-    NOINLINE Json Json::fromString(const std::string& jsonStr){
+    DFE_JSON_INLINE Json Json::fromString(const std::string& jsonStr){
         Json res;
         detail::JsonDecoder::decode(jsonStr.begin(),jsonStr.end(),res);
         return res;
     }
 
     #define INDENT for(unsigned int i=0; i<indentSize; ++i){oss<<"    ";}
-    NOINLINE std::string Json::Json::toString(const Json &value,const bool indent) noexcept{
+    DFE_JSON_INLINE std::string Json::Json::toString(const Json &value,const bool indent) noexcept{
         static unsigned int indentSize=0;
         std::ostringstream oss;
         switch(value._valueType){
@@ -771,7 +757,7 @@ namespace dfe{
         return oss.str();
     }
     #undef INDENT
-    NOINLINE Json& Json::operator= (const Json &value){
+    DFE_JSON_INLINE Json& Json::operator= (const Json &value){
         if(_valueType==value._valueType){
             switch(value._valueType){
                 case ValueType::Null    : break;
@@ -794,7 +780,7 @@ namespace dfe{
         }
         return *this;
     }
-    NOINLINE Json& Json::operator= (Json &&value){
+    DFE_JSON_INLINE Json& Json::operator= (Json &&value){
         if(_valueType!=value._valueType){
             this->reset(value._valueType);
         }
@@ -808,7 +794,7 @@ namespace dfe{
         }
         return *this;
     }
-    NOINLINE bool Json::operator==(const Json& other) const{
+    DFE_JSON_INLINE bool Json::operator==(const Json& other) const{
         if(_valueType!=other._valueType){
             return false;
         }else{
@@ -823,11 +809,11 @@ namespace dfe{
         }
         return false;
     }
-    INLINE bool Json::operator!=(const Json& other) const{
+    DFE_JSON_INLINE bool Json::operator!=(const Json& other) const{
         return !(this->operator==(other));
     }
 
-    NOINLINE Json::Iterator Json::begin(){
+    DFE_JSON_INLINE Json::Iterator Json::begin(){
         if(this->isArray()){
             return Iterator(_array->begin(),*this);
         }else if(this->isObject()){
@@ -836,7 +822,7 @@ namespace dfe{
             throw Exception::typeError("function begin() is only for Array/Object-type value");
         }
     }
-    NOINLINE Json::ConstIterator Json::begin() const{
+    DFE_JSON_INLINE Json::ConstIterator Json::begin() const{
         if(this->isArray()){
             return ConstIterator(_array->cbegin(),*this);
         }else if(this->isObject()){
@@ -845,7 +831,7 @@ namespace dfe{
             throw Exception::typeError("function begin() is only for Array/Object-type value");
         }
     }
-    NOINLINE Json::ConstIterator Json::cbegin() const{
+    DFE_JSON_INLINE Json::ConstIterator Json::cbegin() const{
         if(this->isArray()){
             return ConstIterator(_array->cbegin(),*this);
         }else if(this->isObject()){
@@ -854,7 +840,7 @@ namespace dfe{
             throw Exception::typeError("function cbegin() is only for Array/Object-type value");
         }
     }
-    NOINLINE Json::Iterator Json::end(){
+    DFE_JSON_INLINE Json::Iterator Json::end(){
         if(this->isArray()){
             return Iterator(_array->end(),*this);
         }else if(this->isObject()){
@@ -863,7 +849,7 @@ namespace dfe{
             throw Exception::typeError("function end() is only for Array/Object-type value");
         }
     }
-    NOINLINE Json::ConstIterator Json::end() const{
+    DFE_JSON_INLINE Json::ConstIterator Json::end() const{
         if(this->isArray()){
             return ConstIterator(_array->cend(),*this);
         }else if(this->isObject()){
@@ -872,7 +858,7 @@ namespace dfe{
             throw Exception::typeError("function end() is only for Array/Object-type value");
         }
     }
-    NOINLINE Json::ConstIterator Json::cend() const{
+    DFE_JSON_INLINE Json::ConstIterator Json::cend() const{
         if(this->isArray()){
             return ConstIterator(_array->cend(),*this);
         }else if(this->isObject()){
@@ -881,35 +867,35 @@ namespace dfe{
             throw Exception::typeError("function cend() is only for Array/Object-type value");
         }
     }
-    NOINLINE size_t Json::size() const{
+    DFE_JSON_INLINE size_t Json::size() const{
         if(this->isArray()){
             return _array->size();
         }else if(this->isObject()){
             return _object->size();
         }else throw Exception::typeError("function size() is only for Array/Object-type value");
     }
-    NOINLINE Json::Iterator Json::find(const Json& value){
+    DFE_JSON_INLINE Json::Iterator Json::find(const Json& value){
         if(this->isArray()){
             return Iterator(std::find(_array->begin(),_array->end(),value),*this);
         }else throw Exception::typeError("function find(value) is only for Array-type value");
     }
-    NOINLINE Json::ConstIterator Json::find(const Json& value) const{
+    DFE_JSON_INLINE Json::ConstIterator Json::find(const Json& value) const{
         if(this->isArray()){
             return ConstIterator(std::find(_array->cbegin(),_array->cend(),value),*this);
         }else throw Exception::typeError("function find(value) is only for Array-type value");
     }
-    NOINLINE Json::Iterator Json::find(const std::string &key){
+    DFE_JSON_INLINE Json::Iterator Json::find(const std::string &key){
         if(this->isObject()){
             return Iterator(_object->find(key),*this);
         }else throw Exception::typeError("function find(key) is only for Object-type value");
     }
-    NOINLINE Json::ConstIterator Json::find(const std::string &key) const{
+    DFE_JSON_INLINE Json::ConstIterator Json::find(const std::string &key) const{
         if(this->isObject()){
             return ConstIterator(_object->find(key),*this);
         }else throw Exception::typeError("function find(key) is only for Object-type value");
     }
 
-    NOINLINE void Json::append(const Json& value){
+    DFE_JSON_INLINE void Json::append(const Json& value){
         if(this->isNull()){
             this->reset(ValueType::Array);
         }
@@ -919,14 +905,14 @@ namespace dfe{
             throw Exception::typeError("function append(value) is only for Array-type value");
         }
     }
-    NOINLINE void Json::insert(const Json::Array::size_type index, const Json& value){
+    DFE_JSON_INLINE void Json::insert(const Json::Array::size_type index, const Json& value){
         if(this->isArray()){
             _array->insert(_array->begin()+index,value);
         }else{
             throw Exception::typeError("function insert(index,value) is only for Array-type value");
         }
     }
-    NOINLINE Json& Json::at(const Array::size_type index){
+    DFE_JSON_INLINE Json& Json::at(const Array::size_type index){
         if(this->isArray()){
             if( index<_array->size() ) return _array->operator[](index);
             else throw Exception::outOfRange();
@@ -934,7 +920,7 @@ namespace dfe{
             throw Exception::typeError("operator[index] is only for Array-type value");
         }
     }
-    NOINLINE const Json& Json::at(const Array::size_type index) const{
+    DFE_JSON_INLINE const Json& Json::at(const Array::size_type index) const{
         if(this->isArray()){
             if( index < _array->size() ) return _array->operator[](index);
             else throw Exception::outOfRange();
@@ -942,7 +928,7 @@ namespace dfe{
             throw Exception::typeError("operator[index] is only for Array-type value");
         }
     }
-    NOINLINE Json& Json::operator [](const Array::size_type index){
+    DFE_JSON_INLINE Json& Json::operator [](const Array::size_type index){
         if(this->isNull()){
             this->reset(ValueType::Array);
         }
@@ -953,7 +939,7 @@ namespace dfe{
             throw Exception::typeError("operator[index] is only for Array-type value");
         }
     }
-    NOINLINE const Json& Json::operator [](const Array::size_type index) const{
+    DFE_JSON_INLINE const Json& Json::operator [](const Array::size_type index) const{
         if(this->isArray()){
             if( index < _array->size() ) return _array->operator[](index);
             else throw Exception::outOfRange();
@@ -962,7 +948,7 @@ namespace dfe{
         }
     }
 
-    NOINLINE void Json::append(const std::string &key,const Json &value){
+    DFE_JSON_INLINE void Json::append(const std::string &key,const Json &value){
         if(this->isNull()){
             this->reset(ValueType::Object);
         }
@@ -972,18 +958,18 @@ namespace dfe{
             _object->operator[](key)=value;
         }
     }
-    NOINLINE void Json::insert(const std::string &key,const Json &value){
+    DFE_JSON_INLINE void Json::insert(const std::string &key,const Json &value){
         if(!this->isObject()){
             throw Exception::typeError("function insert(key,value) is only for Object-type value");
         }else{
             _object->operator[](key)=value;
         }
     }
-    NOINLINE bool Json::contains(const std::string &key) const{
+    DFE_JSON_INLINE bool Json::contains(const std::string &key) const{
         if(_valueType!=ValueType::Object) throw Exception::typeError("function contains(key) is only for Object-type value");
         return _object->count(key)>0;
     }
-    NOINLINE std::vector<std::string> Json::keys() const{
+    DFE_JSON_INLINE std::vector<std::string> Json::keys() const{
         if(_valueType!=ValueType::Object) throw Exception::typeError("function keys() is only for Object-type value");
         std::vector<std::string> k;
         for(auto &item : *_object){
@@ -991,25 +977,25 @@ namespace dfe{
         }
         return k;
     }
-    NOINLINE void Json::erase(const std::string &key){
+    DFE_JSON_INLINE void Json::erase(const std::string &key){
         if(_valueType!=ValueType::Object) throw Exception::typeError("function erase(key) is only for Object-type value");
         _object->erase(key);
     }
-    NOINLINE Json& Json::at(const std::string &key){
+    DFE_JSON_INLINE Json& Json::at(const std::string &key){
         if(this->isObject()){
             return _object->at(key);
         }else{
             throw Exception::typeError("operator[](key) is only for Object-type value");
         }
     }
-    NOINLINE const Json& Json::at(const std::string &key) const{
+    DFE_JSON_INLINE const Json& Json::at(const std::string &key) const{
         if(this->isObject()){
             return _object->at(key);
         }else{
             throw Exception::typeError("operator[](key) is only for Object-type value");
         }
     }
-    NOINLINE Json& Json::operator [] (const std::string &key){
+    DFE_JSON_INLINE Json& Json::operator [] (const std::string &key){
         if(this->isNull()){
             this->reset(ValueType::Object);
         }
@@ -1019,7 +1005,7 @@ namespace dfe{
             throw Exception::typeError("operator[](key) is only for Object-type value");
         }
     }
-    NOINLINE const Json& Json::operator [] (const std::string &key) const{
+    DFE_JSON_INLINE const Json& Json::operator [] (const std::string &key) const{
         if(this->isObject()){
             return _object->at(key);
         }else{
@@ -1027,11 +1013,11 @@ namespace dfe{
         }
     }
 
-    INLINE std::ostream& operator<<(std::ostream &os,const dfe::Json &value) noexcept{
+    DFE_JSON_INLINE std::ostream& operator<<(std::ostream &os,const dfe::Json &value) noexcept{
         os << dfe::Json::toString(value);
         return os;
     }
-    INLINE std::ostream& operator<<(std::ostream &os,const dfe::Json::ValueType &valueType) noexcept{
+    DFE_JSON_INLINE std::ostream& operator<<(std::ostream &os,const dfe::Json::ValueType &valueType) noexcept{
         static constexpr const char* names[]={"Null","Bool","Number","String","Array","Object"};
         os << names[static_cast<std::underlying_type<Json::ValueType>::type>(valueType)];
         return os;
@@ -1043,7 +1029,7 @@ namespace dfe{
         /*      JsonDecoder                 */
         /********************************/
         #define THROW throw Json::Exception::decodeError()
-        NOINLINE bool JsonDecoder::decode(const StrIter &start,const StrIter &end,Json& out){
+        DFE_JSON_INLINE bool JsonDecoder::decode(const StrIter &start,const StrIter &end,Json& out){
             out.clear();
             auto r=getParsedValue(start,end,out);
             if(r.first){
@@ -1061,7 +1047,7 @@ namespace dfe{
             }
         }
         #undef THROW
-        NOINLINE
+        DFE_JSON_INLINE
         std::pair<bool,JsonDecoder::StrIter> JsonDecoder::getParsedValue(const StrIter &start,const StrIter &end,::dfe::Json &out) noexcept{
             ValueType type;
             StrIter p;
@@ -1140,7 +1126,7 @@ namespace dfe{
             return {false,end};
         }
         
-        NOINLINE
+        DFE_JSON_INLINE
         std::tuple<bool,JsonDecoder::StrIter,JsonDecoder::ValueType>
         JsonDecoder::detectValueType(const StrIter &start,const StrIter &end) noexcept{
             StrIter p;
@@ -1165,7 +1151,7 @@ namespace dfe{
             }
             return {true,end,ValueType::Null};
         }
-        NOINLINE
+        DFE_JSON_INLINE
         std::tuple<bool,JsonDecoder::StrIter,Json::Null>
         JsonDecoder::tryParseToNull(const StrIter &start,const StrIter &end) noexcept{
             StrIter p=start;
@@ -1181,7 +1167,7 @@ namespace dfe{
         #   undef FAILED
         #endif
         #define FAILED return {false,end,false};
-        NOINLINE
+        DFE_JSON_INLINE
         std::tuple<bool,JsonDecoder::StrIter,Json::Bool>
         JsonDecoder::tryParseToBool(const StrIter &start,const StrIter &end) noexcept{
             size_t l;
@@ -1208,7 +1194,7 @@ namespace dfe{
         }
         #undef FAILED
         #define FAILED return {false,end,0};
-        NOINLINE
+        DFE_JSON_INLINE
         std::tuple<bool,JsonDecoder::StrIter,Json::Number>
         JsonDecoder::tryParseToNumber(const StrIter &start,const StrIter &end) noexcept{
             StrIter p=start;
@@ -1286,7 +1272,7 @@ namespace dfe{
         }
         #undef FAILED
         #define FAILED return {false,end,""};
-        NOINLINE
+        DFE_JSON_INLINE
         std::tuple<bool,JsonDecoder::StrIter,Json::String>
         JsonDecoder::tryParseToString(const StrIter &start,const StrIter &end) noexcept{
             StrIter p=start;
@@ -1359,7 +1345,7 @@ namespace dfe{
         }
         #undef FAILED
         #define FAILED return {false,end,{}};
-        NOINLINE
+        DFE_JSON_INLINE
         std::tuple<bool,JsonDecoder::StrIter,Json::Array>
         JsonDecoder::tryParseToArray(const StrIter &start,const StrIter &end) noexcept{
             bool endFlag=false;
@@ -1406,7 +1392,7 @@ namespace dfe{
         }
         #undef FAILED
         #define FAILED return {false,end,{}};
-        NOINLINE
+        DFE_JSON_INLINE
         std::tuple<bool,JsonDecoder::StrIter,Json::Object>
         JsonDecoder::tryParseToObject(const StrIter &start,const StrIter &end) noexcept{
             bool endFlag=false;
@@ -1491,14 +1477,14 @@ namespace dfe{
             }
         }
         #undef FAILED
-        INLINE bool JsonDecoder::isValidEmptyChar(const char ch) noexcept{
+        DFE_JSON_INLINE bool JsonDecoder::isValidEmptyChar(const char ch) noexcept{
             return (ch==' '||ch=='\n'||ch=='\r'||ch=='\t'||ch=='\b'||ch=='\f'||ch=='\0');
         }
-        INLINE bool JsonDecoder::isValidEmptyString(const StrIter& start,const StrIter& end) noexcept{
+        DFE_JSON_INLINE bool JsonDecoder::isValidEmptyString(const StrIter& start,const StrIter& end) noexcept{
             return start>=end?false:std::all_of(start,end,isValidEmptyChar);
         }
         
-        NOINLINE std::string JsonDecoder::escapeStr(const std::string &str) noexcept{
+        DFE_JSON_INLINE std::string JsonDecoder::escapeStr(const std::string &str) noexcept{
             std::string res;
             for(char ch : str){
                 switch(ch){
@@ -1513,7 +1499,7 @@ namespace dfe{
             }
             return res;
         }
-        NOINLINE std::string JsonDecoder::unicodeToUtf8(const uint16_t b) noexcept{
+        DFE_JSON_INLINE std::string JsonDecoder::unicodeToUtf8(const uint16_t b) noexcept{
             std::string res;
             if( b < 0x0080){
                 res+= char( b & 0b01111111 );
@@ -1532,13 +1518,13 @@ namespace dfe{
         /*      JsonIterator            */
         /********************************/
         #define THROW throw Json::Exception::typeError("iterator is only for Array/Object-type value")
-        INLINE JsonIterator::JsonIterator(const Json::Array::iterator  &iter, Json& json)
+        DFE_JSON_INLINE JsonIterator::JsonIterator(const Json::Array::iterator  &iter, Json& json)
         :   _json(json),_arrayIter(iter),_valueType(Json::ValueType::Array )
         {}
-        INLINE JsonIterator::JsonIterator(const Json::Object::iterator &iter, Json& json)
+        DFE_JSON_INLINE JsonIterator::JsonIterator(const Json::Object::iterator &iter, Json& json)
         :   _json(json),_objectIter(iter),_valueType(Json::ValueType::Object)
         {}
-        NOINLINE JsonIterator::JsonIterator(const JsonIterator& iterator)
+        DFE_JSON_INLINE JsonIterator::JsonIterator(const JsonIterator& iterator)
         :   _json(iterator._json),_valueType(iterator._valueType)
         {
             if(_valueType==Json::ValueType::Array){
@@ -1547,38 +1533,38 @@ namespace dfe{
                 this->_objectIter=iterator._objectIter;
             }
         }
-        NOINLINE size_t JsonIterator::index() const{
+        DFE_JSON_INLINE size_t JsonIterator::index() const{
             if(_valueType==Json::ValueType::Array){
                 return _arrayIter-(_json.begin()._arrayIter);
             }else THROW;
         }
-        NOINLINE std::string JsonIterator::key() const{
+        DFE_JSON_INLINE std::string JsonIterator::key() const{
             if(_valueType==Json::ValueType::Object){
                 return _objectIter->first;
             }else THROW;
         }
-        NOINLINE Json JsonIterator::value() const{
+        DFE_JSON_INLINE Json JsonIterator::value() const{
             if(_valueType==Json::ValueType::Array){
                 return *_arrayIter;
             }else if(_valueType==Json::ValueType::Object){
                 return _objectIter->second;
             }else THROW;
         }
-        NOINLINE Json& JsonIterator::operator*(){
+        DFE_JSON_INLINE Json& JsonIterator::operator*(){
             if(_valueType==Json::ValueType::Array){
                 return *_arrayIter;
             }else if(_valueType==Json::ValueType::Object){
                 return _json[_objectIter->first];
             }else THROW;
         }
-        NOINLINE const Json& JsonIterator::operator*() const{
+        DFE_JSON_INLINE const Json& JsonIterator::operator*() const{
             if(_valueType==Json::ValueType::Array){
                 return *_arrayIter;
             }else if(_valueType==Json::ValueType::Object){
                 return _json[_objectIter->first];
             }else THROW;
         }
-        NOINLINE JsonIterator& JsonIterator::operator++(){
+        DFE_JSON_INLINE JsonIterator& JsonIterator::operator++(){
             if(_valueType==Json::ValueType::Array){
                 ++_arrayIter;
                 return *this;
@@ -1587,7 +1573,7 @@ namespace dfe{
                 return *this;
             }else THROW;
         }
-        NOINLINE JsonIterator JsonIterator::operator++(int i){
+        DFE_JSON_INLINE JsonIterator JsonIterator::operator++(int i){
             if(_valueType==Json::ValueType::Array){
                 Json::Array::iterator iter=_arrayIter;
                 ++_arrayIter;
@@ -1598,7 +1584,7 @@ namespace dfe{
                 return JsonIterator(iter,_json);
             }else THROW;
         }
-        NOINLINE bool JsonIterator::operator==(const JsonIterator &iter) const{
+        DFE_JSON_INLINE bool JsonIterator::operator==(const JsonIterator &iter) const{
             if(_valueType!=iter._valueType){
                 THROW;
             }else if(_valueType==Json::ValueType::Array){
@@ -1607,7 +1593,7 @@ namespace dfe{
                 return iter._objectIter == _objectIter;
             }else THROW;
         }
-        INLINE bool JsonIterator::operator!=(const JsonIterator &iter) const{
+        DFE_JSON_INLINE bool JsonIterator::operator!=(const JsonIterator &iter) const{
             return !(*this==iter);
         }
         #undef THROW
@@ -1616,13 +1602,13 @@ namespace dfe{
         /*      Const JsonIterator      */
         /********************************/
         #define THROW throw Json::Exception::typeError("ConstIterator is only for Array/Object-type value")
-        INLINE JsonConstIterator::JsonConstIterator(const Json::Array::const_iterator  &iter,const Json& json)
+        DFE_JSON_INLINE JsonConstIterator::JsonConstIterator(const Json::Array::const_iterator  &iter,const Json& json)
         :   _json(json),_arrayIter(iter),_valueType(Json::ValueType::Array )
         {}
-        INLINE JsonConstIterator::JsonConstIterator(const Json::Object::const_iterator &iter,const Json& json)
+        DFE_JSON_INLINE JsonConstIterator::JsonConstIterator(const Json::Object::const_iterator &iter,const Json& json)
         :   _json(json),_objectIter(iter),_valueType(Json::ValueType::Object)
         {}
-        NOINLINE JsonConstIterator::JsonConstIterator(const JsonConstIterator& iterator)
+        DFE_JSON_INLINE JsonConstIterator::JsonConstIterator(const JsonConstIterator& iterator)
         :_json(iterator._json),_valueType(iterator._valueType)
         {
             if(_valueType==Json::ValueType::Array){
@@ -1631,31 +1617,31 @@ namespace dfe{
                 this->_objectIter=iterator._objectIter;
             }
         }
-        NOINLINE size_t JsonConstIterator::index() const{
+        DFE_JSON_INLINE size_t JsonConstIterator::index() const{
             if(_valueType==Json::ValueType::Array){
                 return _arrayIter-(_json.begin()._arrayIter);
             }else throw Json::Exception::typeError("type must be Array");
         }
-        NOINLINE std::string JsonConstIterator::key() const{
+        DFE_JSON_INLINE std::string JsonConstIterator::key() const{
             if(_valueType==Json::ValueType::Object){
                 return _objectIter->first;
             }else throw Json::Exception::typeError("type must be Object");
         }
-        NOINLINE Json JsonConstIterator::value() const{
+        DFE_JSON_INLINE Json JsonConstIterator::value() const{
             if(_valueType==Json::ValueType::Array){
                 return *_arrayIter;
             }else if(_valueType==Json::ValueType::Object){
                 return _objectIter->second;
             }else THROW;
         }
-        NOINLINE const Json& JsonConstIterator::operator*() const{
+        DFE_JSON_INLINE const Json& JsonConstIterator::operator*() const{
             if(_valueType==Json::ValueType::Array){
                 return *_arrayIter;
             }else if(_valueType==Json::ValueType::Object){
                 return _json[_objectIter->first];
             }else THROW;
         }
-        NOINLINE JsonConstIterator& JsonConstIterator::operator++(){
+        DFE_JSON_INLINE JsonConstIterator& JsonConstIterator::operator++(){
             if(_valueType==Json::ValueType::Array){
                 ++_arrayIter;
                 return *this;
@@ -1664,7 +1650,7 @@ namespace dfe{
                 return *this;
             }else THROW;
         }
-        NOINLINE JsonConstIterator JsonConstIterator::operator++(int i){
+        DFE_JSON_INLINE JsonConstIterator JsonConstIterator::operator++(int i){
             if(_valueType==Json::ValueType::Array){
                 Json::Array::const_iterator iter=_arrayIter;
                 ++_arrayIter;
@@ -1675,7 +1661,7 @@ namespace dfe{
                 return JsonConstIterator(iter,_json);
             }else THROW;
         }
-        NOINLINE bool JsonConstIterator::operator==(const JsonConstIterator &iter) const{
+        DFE_JSON_INLINE bool JsonConstIterator::operator==(const JsonConstIterator &iter) const{
             if(_valueType!=iter._valueType){
                 THROW;
             }else if(_valueType==Json::ValueType::Array){
@@ -1684,39 +1670,39 @@ namespace dfe{
                 return iter._objectIter == _objectIter;
             }else THROW;
         }
-        INLINE bool JsonConstIterator::operator!=(const JsonConstIterator &iter) const{
+        DFE_JSON_INLINE bool JsonConstIterator::operator!=(const JsonConstIterator &iter) const{
             return !(*this==iter);
         }
         #undef THROW
 
-        INLINE JsonNumber::JsonNumber():_int(0),_isFloat(false){}
+        DFE_JSON_INLINE JsonNumber::JsonNumber():_int(0),_isFloat(false){}
         template<typename T,typename JsonNumber::enable_if_float<T>::type>
-        INLINE JsonNumber::JsonNumber(const T value):_float(static_cast<Float>(value)),_isFloat(true){}
+        DFE_JSON_INLINE JsonNumber::JsonNumber(const T value):_float(static_cast<Float>(value)),_isFloat(true){}
         template<typename T,typename JsonNumber::enable_if_int<T>::type>
-        INLINE JsonNumber::JsonNumber(const T value):_int(static_cast<Int>(value)),_isFloat(false){}
+        DFE_JSON_INLINE JsonNumber::JsonNumber(const T value):_int(static_cast<Int>(value)),_isFloat(false){}
 
         template<typename T>
-        INLINE T JsonNumber::get() const{
+        DFE_JSON_INLINE T JsonNumber::get() const{
             static_assert(std::is_floating_point<T>::value||std::is_integral<T>::value,"T must be integral or floating point, but is not.");
             return _isFloat?static_cast<T>(_float):static_cast<T>(_int);
         }
         template<typename T,typename JsonNumber::enable_if_float<T>::type>
-        INLINE void JsonNumber::set(const T value){
+        DFE_JSON_INLINE void JsonNumber::set(const T value){
             _isFloat=true;
             _float=static_cast<Float>(value);
         }
         template<typename T,typename JsonNumber::enable_if_int<T>::type>
-        INLINE void JsonNumber::set(const T value){
+        DFE_JSON_INLINE void JsonNumber::set(const T value){
             _isFloat=false;
             _int=static_cast<Int>(value);
         }
-        INLINE bool JsonNumber::isFloat() const{
+        DFE_JSON_INLINE bool JsonNumber::isFloat() const{
             return _isFloat;
         }
-        INLINE bool JsonNumber::isInt() const{
+        DFE_JSON_INLINE bool JsonNumber::isInt() const{
             return !_isFloat;
         }
-        NOINLINE bool JsonNumber::operator==(const JsonNumber& other) const{
+        DFE_JSON_INLINE bool JsonNumber::operator==(const JsonNumber& other) const{
             if(_isFloat&&other._isFloat){
                 return _float==other._float;
             }else if(_isFloat&&!other._isFloat){
@@ -1727,10 +1713,10 @@ namespace dfe{
                 return _int==other._int;
             }
         }
-        INLINE bool JsonNumber::operator!=(const JsonNumber& other) const{
+        DFE_JSON_INLINE bool JsonNumber::operator!=(const JsonNumber& other) const{
             return !this->operator==(other);
         }
-        NOINLINE std::ostream& operator<<(std::ostream& os,const JsonNumber& value){
+        DFE_JSON_INLINE std::ostream& operator<<(std::ostream& os,const JsonNumber& value){
             if(value._isFloat){
                 os << value._float;
             }else{
@@ -1741,7 +1727,6 @@ namespace dfe{
     }
 }
 
-#undef INLINE
-#undef NOINLINE
+#undef DFE_JSON_INLINE
 
 #endif
